@@ -122,58 +122,6 @@ class MySpotify(object):
                         print(e,album['artist'])
             print("Add track popularity to {}'s songs".format(album['artist']))
             save_json("data/tracks/{}".format(fl[:-5]),album)
-    
-    
-    def audio_feature(self,artist):
-        """Download audio features of all tracks of one artist
-        
-        :artist(string)
-        
-        """
-                
-        albums=open_json('data/tracks/{}_tracks_info'.format(artist))['albums']
-        Analysis=pd.DataFrame()
-        for k,v in albums.items():
-            audios=[]
-            track_name=[]
-            for i in v:
-                audios.append(i['id'])
-                track_name.append(i['name'])
-            analysis=pd.DataFrame(self.sp.audio_features(audios))
-            
-            analysis['track_name']=track_name
-            analysis['album']=self.sp.album(k)['name']
-            analysis['release_date']=self.sp.album(k)['release_date']
-            analysis['album_id']=k
-            analysis['artist']=artist
-            Analysis=Analysis.append(analysis)
-            
-        Analysis=Analysis.drop_duplicates('id')
-        Analysis=Analysis[~Analysis.analysis_url.isnull()]
-        
-        if 0 in Analysis.columns:
-            del Analysis[0]
-        
-        # drop similar songs, highly possible the same songs
-        Analysis=Analysis.drop_duplicates(['acousticness','liveness',          
-                  'instrumentalness','speechiness', 
-                   'danceability','energy','valence'])
-        
-        print("Extract tracks analysis of artist {}".format(artist))
-        
-        Analysis.to_hdf("./data/analysis/{}_tracks_analysis.h5".format(artist),'analysis')
-        
-    def audio_feature_all(self):
-        """Download audio features of all tracks of all artists of one genre
-        
-        """
-        dir_l=os.listdir('./data/tracks/')
-        for artist in dir_l:
-            if artist[:-17]+'_tracks_analysis.h5' not in os.listdir('./data/analysis/'):
-                try:
-                    self.audio_feature(artist[:-17])
-                except Exception as e:
-                    print("Artist {} has something wrong:{}".format(artist,e))
         
 def update_data(genre='k-pop'):
     spf=MySpotify(genre)  
@@ -199,6 +147,5 @@ def open_json(name):
 if __name__=="__main__":
    
     #spotf=MySpotify()
-    #spotf.audio_feature_all()
         
     pass
